@@ -48,10 +48,36 @@ func Test_getBucketSize(t *testing.T) {
 			totalItem: 1000,
 			want:      100,
 		},
+		{
+			name:      "zero values use defaults",
+			args:      option{},
+			totalItem: 10,
+			want:      10,
+		},
+		{
+			name: "minSize wins over maxSize",
+			args: option{
+				MinSize:      5,
+				MaxSize:      2,
+				ProcessCount: 4,
+			},
+			totalItem: 10,
+			want:      5,
+		},
+		{
+			name: "minSize wins over maxSize on large data",
+			args: option{
+				MinSize:      5,
+				MaxSize:      2,
+				ProcessCount: 1,
+			},
+			totalItem: 100,
+			want:      5,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			size := bucketSizer(tt.args)
+			size := bucketSizer(apply([]Option{func(o *option) { *o = tt.args }}))
 			if got := size(tt.totalItem); got != tt.want {
 				t.Errorf("getBucketSize() = %v, want %v", got, tt.want)
 			}

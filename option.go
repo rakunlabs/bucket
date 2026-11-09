@@ -8,10 +8,21 @@ type option struct {
 
 type Option func(o *option)
 
+// apply builds the option from opts and normalizes invalid values.
 func apply(opts []Option) option {
 	var o option
 	for _, opt := range opts {
-		opt(&o)
+		if opt != nil {
+			opt(&o)
+		}
+	}
+
+	if o.MinSize <= 0 {
+		o.MinSize = 1
+	}
+
+	if o.ProcessCount <= 0 {
+		o.ProcessCount = 1
 	}
 
 	return o
@@ -38,6 +49,8 @@ func WithMaxSize(maxSize int) Option {
 
 // WithMinSize is an option to set the minimum size of the bucket.
 //   - If the bucket size is less than MinSize, it will be set to MinSize.
+//   - MinSize takes precedence over MaxSize when MinSize > MaxSize.
+//   - Default is 1, values less than or equal to 0 will be set to 1.
 func WithMinSize(minSize int) Option {
 	return func(o *option) {
 		o.MinSize = minSize

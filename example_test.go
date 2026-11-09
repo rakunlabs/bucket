@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/worldline-go/bucket"
+	"github.com/rakunlabs/bucket"
 )
 
 func ExampleBucket() {
@@ -13,7 +13,6 @@ func ExampleBucket() {
 	process := func(ctx context.Context, data []int) error {
 		// do something with data
 		// fmt.Println(data)
-		// fmt.Println(bucket.CtxIndex(ctx))
 
 		for _, v := range data {
 			atomic.AddInt64(&totalCount, int64(v))
@@ -45,4 +44,27 @@ func ExampleBucket() {
 	fmt.Println(totalCount)
 	// Output:
 	// 55
+}
+
+func ExampleBucket_CallBack_index() {
+	data := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	results := make([]int, len(data))
+
+	// index is the begin index of the bucket in data,
+	// each bucket writes only its own range so no lock is needed.
+	processBucket := bucket.New[int](bucket.WithProcessCount(4)).CallBack(func(ctx context.Context, index int, chunk []int) error {
+		for i, v := range chunk {
+			results[index+i] = v * v
+		}
+
+		return nil
+	})
+
+	if err := processBucket.Process(context.Background(), data); err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(results)
+	// Output:
+	// [1 4 9 16 25 36 49 64 81 100]
 }
