@@ -12,6 +12,8 @@ Size of each bucket is calculated by `len(data) / processCount` with minimum and
 go get github.com/rakunlabs/bucket
 ```
 
+Requires Go 1.27 or later.
+
 > This package is based on [golang.org/x/sync/errgroup](https://pkg.go.dev/golang.org/x/sync/errgroup).
 
 ## Usage
@@ -55,3 +57,13 @@ processBucket = processBucket.CallBack(func(ctx context.Context, index int, chun
 ```
 
 `Process` returns `bucket.ErrNoCallback` if no callback is set and stops scheduling new buckets after the first error or context cancellation.
+
+## Options
+
+| Option | Config field | Default | Description |
+|---|---|---|---|
+| `WithProcessCount` | `process_count` | `1` | Maximum number of buckets processed concurrently. |
+| `WithMinSize` | `min_size` | `1` | Minimum bucket size, takes precedence over max size. |
+| `WithMaxSize` | `max_size` | no limit | Maximum bucket size, `0` or less means no limit. |
+
+Options can also be given with `bucket.Config{...}.ToOption()`.
